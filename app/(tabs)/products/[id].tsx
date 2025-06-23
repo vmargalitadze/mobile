@@ -1,36 +1,35 @@
+import { Image } from "expo-image";
+import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
   ActivityIndicator,
   ScrollView,
-
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import { Image } from "expo-image";
-
-interface Product {
-  id: number;
-  title: string;
-  price: number;
-  description: string;
-  image: string;
-}
+import { getProduct, Product } from "../../../services/firestore";
 
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(0);
 
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        const res = await fetch(`https://fakestoreapi.com/products/${id}`);
-        const data = await res.json();
-        setProduct(data);
-      } catch (error) {
-        console.error(error);
+        setLoading(true);
+        setError(null);
+        if (typeof id === 'string') {
+          const productData = await getProduct(id);
+          setProduct(productData);
+        }
+      } catch (err) {
+        setError('Failed to load product details');
+        console.error('Error fetching product:', err);
       } finally {
         setLoading(false);
       }
@@ -38,10 +37,31 @@ export default function ProductDetails() {
     fetchProduct();
   }, [id]);
 
+  const handleQuantityChange = (increment: boolean) => {
+    if (increment) {
+      setQuantity(prev => prev + 1);
+    } else {
+      setQuantity(prev => Math.max(0, prev - 1));
+    }
+  };
+
+  const handleAddToCart = () => {
+    console.log('Adding to cart:', product?.title, 'Quantity:', quantity);
+  };
+
   if (loading) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="red" />
+        <Text style={styles.loadingText}>Loading product details...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.center}>
+        <Text style={styles.errorText}>{error}</Text>
       </View>
     );
   }
@@ -49,7 +69,7 @@ export default function ProductDetails() {
   if (!product) {
     return (
       <View style={styles.center}>
-        <Text>Product not found</Text>
+        <Text style={styles.errorText}>Product not found</Text>
       </View>
     );
   }
@@ -69,15 +89,29 @@ export default function ProductDetails() {
           <Text style={styles.price}>Price: ${product.price.toFixed(2)}</Text>
           <Text style={styles.description}>{product.description}</Text>
           <View style={styles.quantityWrapper}>
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={() => handleQuantityChange(false)}
+            >
               <Text style={styles.buttonText}>-</Text>
-         
-            <Text style={styles.quantity}>0</Text>
+            </TouchableOpacity>
+            <Text style={styles.quantity}>{quantity}</Text>
+            <TouchableOpacity 
+              style={styles.button} 
+              onPress={() => handleQuantityChange(true)}
+            >
               <Text style={styles.buttonText}>+</Text>
-      
+            </TouchableOpacity>
           </View>
-          <View style={styles.cartBtn}>
-            <Text style={styles.cartText}>Add to cart</Text>
-          </View>
+          <TouchableOpacity 
+            style={[styles.cartBtn, quantity === 0 && styles.cartBtnDisabled]} 
+            onPress={handleAddToCart}
+            disabled={quantity === 0}
+          >
+            <Text style={styles.cartText}>
+              {quantity === 0 ? 'Select quantity' : 'Add to cart'}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
     </ScrollView>
@@ -149,6 +183,9 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignItems: "center",
   },
+  cartBtnDisabled: {
+    backgroundColor: "#ccc",
+  },
   cartText: {
     color: "#fff",
     fontWeight: "bold",
@@ -158,14 +195,23 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
+    color: "#666",
+  },
+  errorText: {
+    fontSize: 16,
+    color: "red",
+    textAlign: "center",
   },
   quantityWrapper: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 20,
-    textAlign:"center",
-    justifyContent:"center",
-    gap:25,
-    fontSize:25
+    justifyContent: "center",
+    gap: 25,
   },
 });

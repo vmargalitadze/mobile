@@ -1,16 +1,31 @@
+import Ionicons from "@expo/vector-icons/Ionicons";
 import { Tabs } from "expo-router";
 import React from "react";
-import Ionicons from "@expo/vector-icons/Ionicons";
+
 export default function TabLayout() {
   return (
-    <Tabs screenOptions={{ headerShown: false, animation: "fade" }}>
+    <Tabs 
+      screenOptions={{ 
+        headerShown: false, 
+        tabBarStyle: {
+          backgroundColor: '#000',
+        },
+        tabBarActiveTintColor: "red",
+        tabBarInactiveTintColor: "white",
+      }}
+    >
+      <Tabs.Screen
+        name="index"
+        options={{
+          href: null,
+        }}
+      />
       <Tabs.Screen
         name="products"
         options={{
-          headerShown: false,
-          tabBarInactiveTintColor: "white",
+          headerShown: true,
+          title: "Products",
           headerTitleAlign: "center",
-          tabBarActiveTintColor: "red",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="pricetags-outline" size={size} color={color} />
           ),
@@ -20,9 +35,8 @@ export default function TabLayout() {
         name="cart"
         options={{
           headerShown: true,
+          title: "Cart",
           headerTitleAlign: "center",
-          tabBarInactiveTintColor: "white",
-          tabBarActiveTintColor: "red",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="cart-outline" size={size} color={color} />
           ),
@@ -32,9 +46,8 @@ export default function TabLayout() {
         name="profile"
         options={{
           headerShown: true,
+          title: "Profile",
           headerTitleAlign: "center",
-          tabBarInactiveTintColor: "white",
-          tabBarActiveTintColor: "red",
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="person-outline" size={size} color={color} />
           ),
