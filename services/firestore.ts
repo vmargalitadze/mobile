@@ -47,21 +47,7 @@ export const getProducts = async (): Promise<Product[]> => {
 };
 
 // Get a single product by ID
-export const getProduct = async (id: string): Promise<Product | null> => {
-  try {
-    const docRef = doc(db, 'products', id);
-    const docSnap = await getDoc(docRef);
-    
-    if (docSnap.exists()) {
-      return { id: docSnap.id, ...docSnap.data() } as Product;
-    } else {
-      return null;
-    }
-  } catch (error) {
-    console.error('Error getting product:', error);
-    return null;
-  }
-};
+
 
 // Add a new product
 export const addProduct = async (product: Omit<Product, 'id'>): Promise<string | null> => {

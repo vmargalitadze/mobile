@@ -1,22 +1,26 @@
+import { Product } from "@/services/firestore";
 import { Image } from "expo-image";
 import { useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { getProduct, Product } from "../../../services/firestore";
+import { useDispatch } from "react-redux";
+import { addToCart } from "../../../redux/cartSlice";
 
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [quantity, setQuantity] = useState(0);
+  const [quantity, setQuantity] = useState(1);
+  const dispatch = useDispatch();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -24,8 +28,9 @@ export default function ProductDetails() {
         setLoading(true);
         setError(null);
         if (typeof id === 'string') {
-          const productData = await getProduct(id);
-          setProduct(productData);
+          const productData = await fetch(`https://fakestoreapi.com/products/${id}`);
+          const productDataJson = await productData.json();
+          setProduct(productDataJson);
         }
       } catch (err) {
         setError('Failed to load product details');
@@ -41,12 +46,28 @@ export default function ProductDetails() {
     if (increment) {
       setQuantity(prev => prev + 1);
     } else {
-      setQuantity(prev => Math.max(0, prev - 1));
+      setQuantity(prev => Math.max(1, prev - 1));
     }
   };
 
   const handleAddToCart = () => {
-    console.log('Adding to cart:', product?.title, 'Quantity:', quantity);
+    if (!product || !product.id) return;
+    
+  
+    for (let i = 0; i < quantity; i++) {
+      dispatch(addToCart({
+        id: parseInt(product.id.toString()),
+        name: product.title,
+        price: product.price,
+        image: product.image
+      }));
+    }
+    
+    Alert.alert(
+      'Added to Cart!',
+      `${quantity} ${quantity === 1 ? 'item' : 'items'} added to your cart.`,
+      [{ text: 'OK' }]
+    );
   };
 
   if (loading) {
@@ -104,12 +125,11 @@ export default function ProductDetails() {
             </TouchableOpacity>
           </View>
           <TouchableOpacity 
-            style={[styles.cartBtn, quantity === 0 && styles.cartBtnDisabled]} 
+            style={styles.cartBtn} 
             onPress={handleAddToCart}
-            disabled={quantity === 0}
           >
             <Text style={styles.cartText}>
-              {quantity === 0 ? 'Select quantity' : 'Add to cart'}
+              Add to cart ({quantity})
             </Text>
           </TouchableOpacity>
         </View>
@@ -182,9 +202,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     marginTop: 20,
     alignItems: "center",
-  },
-  cartBtnDisabled: {
-    backgroundColor: "#ccc",
   },
   cartText: {
     color: "#fff",
