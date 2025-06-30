@@ -3,14 +3,13 @@ import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import { db } from '../config/firebase';
 import { registerSchema } from '../config/validation';
@@ -31,40 +30,37 @@ export default function RegisterScreen() {
       setErrors(errorMessages);
       return;
     }
-    setErrors([]);
 
+    setErrors([]);
     setLoading(true);
+
     try {
       const { user, error } = await signUp(email, password);
       if (error) {
         setErrors([error]);
       } else if (user) {
-  
+        // Store profile in Firestore
         await setDoc(doc(db, 'users', user.uid), {
-          name: name,
-          email: email,
+          name,
+          email,
           createdAt: new Date(),
         });
 
-        Alert.alert('Success', 'Registration successful!', [
-          { text: 'OK', onPress: () => router.replace('/(tabs)') }
-        ]);
+   
+        router.replace('/(tabs)/products');
       }
     } catch (error) {
-      setErrors(['დაფიქსირდა გაუთვალისწინებელი შეცდომა']);
+      console.error("Registration error:", error);
+      setErrors(['An unexpected error occurred.']);
     } finally {
       setLoading(false);
     }
   };
 
-  const goToLogin = () => {
-    router.push('/login');
-  };
-
   return (
     <KeyboardAvoidingView 
       style={styles.container} 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
         <Text style={styles.title}>Create Account</Text>
@@ -132,7 +128,7 @@ export default function RegisterScreen() {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>Already have an account? </Text>
-            <TouchableOpacity onPress={goToLogin}>
+            <TouchableOpacity onPress={() => router.push('/login')}>
               <Text style={styles.linkText}>Sign In</Text>
             </TouchableOpacity>
           </View>
@@ -206,4 +202,4 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
-}); 
+});

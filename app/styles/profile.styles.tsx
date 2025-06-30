@@ -1,12 +1,10 @@
-
-
 import { StyleSheet } from 'react-native';
 
 const profileStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-    padding: 20,
+    padding: 20
   },
   header: {
     alignItems: 'center',
@@ -86,6 +84,7 @@ const profileStyles = StyleSheet.create({
     fontSize: 16,
     color: '#fff',
     fontWeight: 'bold',
+  
   },
   button: {
     backgroundColor: '#000',
@@ -111,6 +110,21 @@ const profileStyles = StyleSheet.create({
   errorText: {
     color: '#ff0000',
     marginBottom: 10,
+  },
+  errorContainer: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  retryButton: {
+    backgroundColor: '#007AFF',
+    padding: 10,
+    borderRadius: 6,
+    marginTop: 10,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: 'bold',
   },
   locationInfo: {
     marginBottom: 10,

@@ -1,17 +1,19 @@
 import { router } from 'expo-router';
 import { signOut } from "firebase/auth";
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Alert, Text, TouchableOpacity, View } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import { auth } from '../../config/firebase';
 import { useAuth } from '../../contexts/AuthContext';
 import useLocation from '../../hooks/useLocation';
 import { getUserProfile, UserProfile } from '../../services/userProfile';
-import MapView, { Marker } from 'react-native-maps';
-import profileStyles from './profile.style';
+import profileStyles from '../styles/profile.styles';
+
 const Profile = () => {
   const { user, loading } = useAuth();
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const { longitude, latitude, address, error, getUserLocation } = useLocation();
 
   useEffect(() => {
@@ -24,28 +26,40 @@ const Profile = () => {
     if (!user) return;
 
     setProfileLoading(true);
+    setProfileError(null);
     try {
       const profile = await getUserProfile(user.uid);
       setUserProfile(profile);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching user profile:', error);
+      
+  
+      if (error?.code === 'failed-precondition' || error?.message?.includes('offline')) {
+        setProfileError('No internet connection. Please check your network and try again.');
+      } else {
+        setProfileError('Failed to load profile. Please try again later.');
+      }
     } finally {
       setProfileLoading(false);
     }
   };
 
   const handleLogOut = async () => {
-    signOut(auth)
-      .then(() => {
-        console.log("User signed out successfully!");
-      })
-      .catch((error) => {
-        console.error("Sign out error:", error);
-      });
+    try {
+      await signOut(auth);
+      console.log("User signed out successfully!");
+    } catch (error) {
+      console.error("Sign out error:", error);
+      Alert.alert('Error', 'Failed to sign out. Please try again.');
+    }
   };
 
   const handleGetLocation = async () => {
     await getUserLocation();
+  };
+
+  const handleRetryProfile = () => {
+    fetchUserProfile();
   };
 
   if (loading) {
@@ -84,6 +98,13 @@ const Profile = () => {
 
         {profileLoading ? (
           <ActivityIndicator size="small" color="red" style={profileStyles.profileLoading} />
+        ) : profileError ? (
+          <View style={profileStyles.errorContainer}>
+            <Text style={profileStyles.errorText}>{profileError}</Text>
+            <TouchableOpacity style={profileStyles.retryButton} onPress={handleRetryProfile}>
+              <Text style={profileStyles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
         ) : (
           <>
             <Text style={profileStyles.name}>
