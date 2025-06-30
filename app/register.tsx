@@ -1,4 +1,5 @@
 import { router } from 'expo-router';
+import { signOut } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
 import React, { useState } from 'react';
 import {
@@ -11,7 +12,7 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { db } from '../config/firebase';
+import { auth, db } from '../config/firebase';
 import { registerSchema } from '../config/validation';
 import { signUp } from '../services/auth';
 
@@ -39,15 +40,20 @@ export default function RegisterScreen() {
       if (error) {
         setErrors([error]);
       } else if (user) {
-        // Store profile in Firestore
+
         await setDoc(doc(db, 'users', user.uid), {
           name,
           email,
           createdAt: new Date(),
         });
 
-   
-        router.replace('/(tabs)/products');
+
+        await signOut(auth);
+
+
+        setTimeout(() => {
+          router.replace('/login');
+        }, 300);
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -58,8 +64,8 @@ export default function RegisterScreen() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.content}>
@@ -139,67 +145,22 @@ export default function RegisterScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 20,
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-    color: '#000',
-  },
-  subtitle: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginBottom: 40,
-    color: '#666',
-  },
-  form: {
-    width: '100%',
-  },
+  container: { flex: 1, backgroundColor: '#fff' },
+  content: { flex: 1, justifyContent: 'center', paddingHorizontal: 20 },
+  title: { fontSize: 32, fontWeight: 'bold', textAlign: 'center', marginBottom: 10, color: '#000' },
+  subtitle: { fontSize: 16, textAlign: 'center', marginBottom: 40, color: '#666' },
+  form: { width: '100%' },
   input: {
-    borderWidth: 1,
-    borderColor: '#ddd',
-    borderRadius: 8,
-    padding: 15,
-    marginBottom: 15,
-    fontSize: 16,
-    backgroundColor: '#f9f9f9',
+    borderWidth: 1, borderColor: '#ddd', borderRadius: 8, padding: 15,
+    marginBottom: 15, fontSize: 16, backgroundColor: '#f9f9f9'
   },
   button: {
-    backgroundColor: '#000',
-    padding: 15,
-    borderRadius: 8,
-    alignItems: 'center',
-    marginTop: 10,
+    backgroundColor: '#000', padding: 15, borderRadius: 8,
+    alignItems: 'center', marginTop: 10,
   },
-  buttonDisabled: {
-    backgroundColor: '#ccc',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 30,
-  },
-  footerText: {
-    color: '#666',
-    fontSize: 14,
-  },
-  linkText: {
-    color: '#000',
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
+  buttonDisabled: { backgroundColor: '#ccc' },
+  buttonText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
+  footer: { flexDirection: 'row', justifyContent: 'center', marginTop: 30 },
+  footerText: { color: '#666', fontSize: 14 },
+  linkText: { color: '#000', fontSize: 14, fontWeight: 'bold' },
 });

@@ -13,6 +13,7 @@ export default function Index() {
         router.replace('/login');
       }
     }
+
   }, [user, loading]);
 
   if (loading) {

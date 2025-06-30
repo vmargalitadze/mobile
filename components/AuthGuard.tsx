@@ -16,7 +16,7 @@ export const AuthGuard: React.FC = () => {
           router.replace('/login');
         }
         setHasRedirected(true);
-      }, 500); 
+      }, 500);
 
       return () => clearTimeout(timer);
     }
